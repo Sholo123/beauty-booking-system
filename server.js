@@ -3,6 +3,9 @@ import express from "express";
 import dotenv from "dotenv";
 import postgres from "postgres";
 import userRouter from "./server/routes/userRoutes.js";
+import serviceRouter from "./server/routes/serviceRoutes.js";
+import appointmentRouter from "./server/routes/appointmentRoutes.js";
+import feedbackRouter from "./server/routes/feedbackRoutes.js";
 
 
 
@@ -12,7 +15,12 @@ const PORT = process.env.PORT || 4000;
 
 app.use(express.json());
 
+//API endpoints
 app.use('/api/users', userRouter);
+app.use('/api/services', serviceRouter);
+app.use('/api/appointments', appointmentRouter);
+app.use('/api/feedback', feedbackRouter);
+
 
 // ------------------------
 // DATABASE CONNECTION
@@ -61,31 +69,46 @@ async function initDB() {
       )
     `;
 
-    // Appointments
+    //Service Images
     await sql`
-      CREATE TABLE IF NOT EXISTS appointments (
-        appointment_id SERIAL PRIMARY KEY,
-        client_id INT NOT NULL,
+      CREATE TABLE IF NOT EXISTS service_images (
+        image_id SERIAL PRIMARY KEY,
         service_id INT NOT NULL,
-        appointment_date DATE NOT NULL,
-        start_time TIME NOT NULL,
-        end_time TIME NOT NULL,
-        status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending','confirmed','completed','cancelled')),
+        image_url VARCHAR(355) NOT NULL,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (client_id) REFERENCES clients(client_id),
         FOREIGN KEY (service_id) REFERENCES services(service_id)
       )
     `;
 
-    // Feedback
+    // Appointments
+    await sql`
+      CREATE TABLE IF NOT EXISTS appointments (
+        appointment_id SERIAL PRIMARY KEY,
+        user_id INT NOT NULL,
+        service_id INT NOT NULL,
+        appointment_date DATE NOT NULL,
+        start_time TIME NOT NULL,
+        end_time TIME NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending','confirmed','cancelled','rejected')),
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (service_id) REFERENCES services(service_id)
+      )
+    `;
+
+    //Feedback
     await sql`
       CREATE TABLE IF NOT EXISTS feedback (
         feedback_id SERIAL PRIMARY KEY,
         appointment_id INT NOT NULL,
+        user_id INT NOT NULL,
+        service_id INT NOT NULL,
         rating INT CHECK (rating >= 1 AND rating <= 5),
         comment TEXT,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id)
+        FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id),
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (service_id) REFERENCES services(service_id)
       )
     `;
 
