@@ -12,6 +12,7 @@ export const registerUser  = async (req, res) => {
         password= "None", 
         phone,
         location,
+        province,
         role = "client"
     } = req.body;
 
@@ -29,8 +30,8 @@ export const registerUser  = async (req, res) => {
 
         // Create new user
         const newUser = await sql`
-            INSERT INTO users (first_name, last_name, email, password, phone, location, role)
-            VALUES (${first_name}, ${last_name}, ${email}, ${hashedPassword}, ${phone}, ${location}, ${role})
+            INSERT INTO users (first_name, last_name, email, password, phone, location, province, role)
+            VALUES (${first_name}, ${last_name}, ${email}, ${hashedPassword}, ${phone}, ${location}, ${province}, ${role})
             RETURNING *
         `;
 
@@ -66,10 +67,16 @@ export const loginUser = async (req, res) => {
         }
 
         // Generate JWT token
-        const token = jwt.sign({ userId: user[0].user_id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+        const token = jwt.sign(
+            { userId: user[0].user_id },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
         console.log("User logged in:", user[0]);
 
-        res.status(200).json({ token });
+        // Send token + userId
+        res.status(200).json({ token, userId: user[0].user_id });
     } catch (error) {
         console.error("Error logging in user:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -99,7 +106,7 @@ export const getUserProfile = async (req, res) => {
 //Update user profile by ID
 export const updateUserProfile = async (req, res) => {
     const { userId } = req.params;
-    const { first_name, last_name, email, phone, location } = req.body;
+    const { first_name, last_name, email, phone, location, province } = req.body;
     
     const updates = {};
     
@@ -108,6 +115,7 @@ export const updateUserProfile = async (req, res) => {
     if (email !== undefined) updates.email = email;
     if (phone !== undefined) updates.phone = phone;
     if (location !== undefined) updates.location = location;
+    if (province !== undefined) updates.province = province;
     
     if (Object.keys(updates).length === 0) {
         return res.status(400).json({ message: "At least one field is required to update" });

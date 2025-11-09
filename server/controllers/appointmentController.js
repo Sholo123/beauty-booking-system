@@ -5,14 +5,13 @@ export const createAppointment = async (req, res) => {
         const { userId, serviceId } = req.params;
       const { 
         appointment_date,
-        start_time, 
-        end_time,
+        slot_time,
         status
         } = req.body;
       try {
         const newAppointment = await sql`
-          INSERT INTO appointments (user_id, service_id, appointment_date, start_time, end_time, status)
-          VALUES (${userId}, ${serviceId}, ${appointment_date}, ${start_time}, ${end_time}, 'pending')
+          INSERT INTO appointments (user_id, service_id, appointment_date, time_slot, status)
+          VALUES (${userId}, ${serviceId}, ${appointment_date}, ${slot_time}, 'pending')
           RETURNING *
         `;
 
@@ -27,7 +26,7 @@ export const createAppointment = async (req, res) => {
 //Update an appointment
 export const updateAppointment = async (req, res) => {
       const { appointmentId, userId, serviceId } = req.params;
-      const {  appointment_date, start_time, end_time, status } = req.body;
+      const {  appointment_date, slot_time, status } = req.body;
 
       const updates = {}; 
 
@@ -35,8 +34,7 @@ export const updateAppointment = async (req, res) => {
         if (userId !== undefined) updates.user_id = userId;
         if (serviceId !== undefined) updates.service_id = serviceId;
         if (appointment_date !== undefined) updates.appointment_date = appointment_date;
-        if (start_time !== undefined) updates.start_time = start_time;
-        if (end_time !== undefined) updates.end_time = end_time;
+        if(slot_time !== undefined) updates.time_slot = slot_time;
         if (status !== undefined) updates.status = status;
 
           if (Object.keys(updates).length === 0) {
