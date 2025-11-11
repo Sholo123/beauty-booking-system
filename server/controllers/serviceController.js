@@ -64,24 +64,37 @@ import {sql} from '../config/db.js';
     };
 
     //Add images to a service
-    export const addServiceImage = async (req, res) => {
-      const { serviceId } = req.params;
-      const { image_url } = req.body;
+   export const addServiceImage = async (req, res) => {
+    const { serviceId } = req.params;
 
-      try {
-        const newImage = await sql`
-          INSERT INTO service_images (service_id, image_url)
-          VALUES (${serviceId}, ${image_url})
-          RETURNING *
-        `;
+    let image_url;
 
-        console.log("Added new service image:", newImage[0]);
-        res.status(201).json(newImage[0]);
-      } catch (error) {
-        console.error("Error adding service image:", error);
-        res.status(500).json({ message: "Internal server error" });
-      }
-    };
+    // If a file is uploaded, use its path
+    if (req.file) {
+      image_url = `/uploads/${req.file.filename}`;
+    }
+    // If an image URL is provided, use it
+    else if (req.body.image_url) {
+      image_url = req.body.image_url;
+    }
+    // No image provided
+    else {
+      return res.status(400).json({ message: "No image provided" });
+    }
+
+    try {
+      const newImage = await sql`
+        INSERT INTO service_images (service_id, image_url)
+        VALUES (${serviceId}, ${image_url})
+        RETURNING *
+      `;
+      res.status(201).json(newImage[0]);
+    } catch (error) {
+      console.error("Error adding service image:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+
 
     //Remove image from a service
     export const deleteServiceImage = async (req, res) => {
@@ -130,19 +143,37 @@ import {sql} from '../config/db.js';
 
     
   //Get all services
-  export const getAllServices = async (req, res) => {
+ export const getAllServices = async (req, res) => {
+  try {
+    const services = await sql`
+      SELECT 
+        services.service_id,
+        services.name,
+        services.description,
+        services.price,
+        services.duration_minutes,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'image_id', service_images.image_id,
+              'image_url', service_images.image_url
+            )
+          ) FILTER (WHERE service_images.image_id IS NOT NULL), '[]'
+        ) AS images
+      FROM services
+      LEFT JOIN service_images ON services.service_id = service_images.service_id
+      GROUP BY services.service_id
+    `;
 
-    try {
-      const services = await sql`
-        SELECT * FROM services
-      `;
-      console.log("Retrieved all services:", services);
-      res.status(200).json(services);
-    } catch (error) {
-      console.error("Error retrieving services:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  };
+    console.log("Retrieved all services:", services);
+    res.status(200).json(services);
+  } catch (error) {
+    console.error("Error retrieving services:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
   //Remove a service
   export const deleteService = async (req, res) => {

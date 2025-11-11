@@ -4,43 +4,83 @@ import LogoImage from '../assets/Logo.jpg';
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen flex">
-      {/* Left sidebar */}
-      <div className="w-64 bg-stone-900 text-white flex flex-col items-center py-8">
-        <div className="w-24 h-24 mb-8">
-          <img src={LogoImage} alt="Logo" className="w-full h-full object-cover rounded-full" />
+    <div className="min-h-screen flex bg-gradient-to-br from-stone-50 via-rose-50 to-stone-100">
+      {/* Sidebar */}
+      <div className="w-64 bg-gradient-to-b from-stone-100 to-stone-50 shadow-xl border-r border-stone-200 flex flex-col items-center py-8 rounded-r-3xl z-20 relative">
+        {/* Logo */}
+        <div className="w-24 h-24 mb-6 shadow-lg rounded-full overflow-hidden ring-4 ring-stone-200">
+          <img
+            src={LogoImage}
+            alt="Logo"
+            className="w-full h-full object-cover"
+          />
         </div>
-        <nav className="flex flex-col space-y-4 w-full">
+        {/* App Name */}
+        <h2 className="text-xl font-semibold text-stone-700 mb-8 tracking-wide" style={{ fontFamily: 'serif' }}>
+          BalmyFlare Beautique
+        </h2>
+        {/* Navigation */}
+        <nav className="flex flex-col space-y-3 w-full px-4">
           <NavLink
             to="bookappointment"
             className={({ isActive }) =>
-              `block px-6 py-3 rounded-xl text-center ${isActive ? 'bg-rose-400 text-stone-900 font-semibold' : 'hover:bg-stone-700'}`
+              `block px-6 py-3 text-center rounded-xl transition-all duration-300 ${
+                isActive
+                  ? 'bg-gradient-to-r from-stone-200 to-rose-200 text-stone-800 font-semibold shadow-md border border-stone-300'
+                  : 'bg-white/70 text-stone-600 hover:bg-stone-100 border border-transparent hover:border-stone-200'
+              }`
             }
           >
             Book Appointment
           </NavLink>
           <NavLink
-            to="review"
+            to="myappointments"
             className={({ isActive }) =>
-              `block px-6 py-3 rounded-xl text-center ${isActive ? 'bg-rose-400 text-stone-900 font-semibold' : 'hover:bg-stone-700'}`
+              `block px-6 py-3 text-center rounded-xl transition-all duration-300 ${
+                isActive
+                  ? 'bg-gradient-to-r from-stone-200 to-rose-200 text-stone-800 font-semibold shadow-md border border-stone-300'
+                  : 'bg-white/70 text-stone-600 hover:bg-stone-100 border border-transparent hover:border-stone-200'
+              }`
             }
           >
-            Review
+            My Appointments
           </NavLink>
           <NavLink
-            to="profile"
+            to="feedback"
             className={({ isActive }) =>
-              `block px-6 py-3 rounded-xl text-center ${isActive ? 'bg-rose-400 text-stone-900 font-semibold' : 'hover:bg-stone-700'}`
+              `block px-6 py-3 text-center rounded-xl transition-all duration-300 ${
+                isActive
+                  ? 'bg-gradient-to-r from-stone-200 to-rose-200 text-stone-800 font-semibold shadow-md border border-stone-300'
+                  : 'bg-white/70 text-stone-600 hover:bg-stone-100 border border-transparent hover:border-stone-200'
+              }`
             }
           >
-            View Profile
+            My Feedback
           </NavLink>
-        </nav>
-      </div>
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `block px-6 py-3 text-center rounded-xl transition-all duration-300 ${
+                isActive
+                  ? 'bg-gradient-to-r from-stone-200 to-rose-200 text-stone-800 font-semibold shadow-md border border-stone-300'
+                  : 'bg-white/70 text-stone-600 hover:bg-stone-100 border border-transparent hover:border-stone-200'
+              }`
+            }
+          >
+            Log Out
+          </NavLink>
 
-      {/* Right content area */}
-      <div className="flex-1 bg-amber-50 p-6">
-        <Outlet />
+        </nav>
+        {/* Footer */}
+        <div className="mt-auto text-xs text-stone-500 italic pt-8">
+          © 2025 BalmyFlare Beautique
+        </div>
+      </div>
+      {/* Main Content */}
+      <div className="flex-1 bg-gradient-to-br from-white/80 to-stone-50/50 rounded-l-3xl shadow-inner p-8 overflow-y-auto border-l border-stone-200">
+        <div className="max-w-4xl mx-auto bg-white/90 shadow-lg rounded-2xl p-8 border border-stone-100">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

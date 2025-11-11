@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 4000;
 app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'));
+app.use("/uploads", express.static("uploads"));
 
 //API endpoints
 app.use('/api/users', userRouter);
@@ -81,7 +82,7 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS service_images (
         image_id SERIAL PRIMARY KEY,
         service_id INT NOT NULL,
-        image_url VARCHAR(355) NOT NULL,
+        image_url VARCHAR NOT NULL,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (service_id) REFERENCES services(service_id)
       )

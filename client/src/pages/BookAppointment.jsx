@@ -131,18 +131,21 @@ const BookAppointment = () => {
   // If user is not logged in, show message
   if (!userId) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-600 font-bold text-lg">
-          You must be logged in to book an appointment.
-        </p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 via-rose-50 to-stone-100">
+        <div className="bg-white p-8 rounded-2xl shadow-lg text-center border border-stone-200">
+          <div className="text-stone-500 text-5xl mb-4">🔒</div>
+          <p className="text-stone-700 font-medium text-lg">
+            You must be logged in to book an appointment.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-stone-100 to-rose-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl p-8 md:p-12 relative">
-        <h2 className="text-3xl font-bold text-stone-800 mb-6 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-rose-50 to-stone-100 flex items-center justify-center p-6">
+      <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl p-8 md:p-12 relative border border-stone-100">
+        <h2 className="text-3xl font-bold text-stone-800 mb-6 text-center" style={{ fontFamily: 'serif' }}>
           Book an Appointment
         </h2>
         <p className="text-center text-stone-600 mb-8">
@@ -150,11 +153,11 @@ const BookAppointment = () => {
         </p>
 
         {error && (
-          <div className="mb-5 p-4 bg-red-50 border-2 border-red-200 rounded-xl flex justify-between items-start">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="mb-5 p-4 bg-rose-50 border-2 border-rose-200 rounded-xl flex justify-between items-start">
+            <p className="text-rose-600 text-sm">{error}</p>
             <button
               onClick={() => setError('')}
-              className="ml-4 text-red-500 font-bold hover:text-red-700 transition-colors"
+              className="ml-4 text-rose-500 font-bold hover:text-rose-700 transition-colors"
               aria-label="Dismiss error"
             >
               ×
@@ -170,7 +173,7 @@ const BookAppointment = () => {
               name="serviceId"
               value={formData.serviceId}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border-2 border-stone-200 focus:border-rose-300 focus:outline-none transition-colors"
+              className="w-full px-4 py-3 rounded-xl border-2 border-stone-200 focus:border-rose-300 focus:outline-none transition-colors bg-white"
             >
               <option value="">Select a service</option>
               {services.map((service) => (
@@ -184,7 +187,7 @@ const BookAppointment = () => {
           {/* Date */}
           <div>
             <label className="block text-stone-700 text-sm font-medium mb-2">
-              Appointment Date (Mon-Sat)
+              Appointment Date (Monday to Saturday)
             </label>
             <input
               type="date"
@@ -192,7 +195,7 @@ const BookAppointment = () => {
               min={new Date().toISOString().split('T')[0]}
               value={formData.appointmentDate}
               onChange={handleDateChange}
-              className="w-full px-4 py-3 rounded-xl border-2 border-stone-200 focus:border-rose-300 focus:outline-none transition-colors"
+              className="w-full px-4 py-3 rounded-xl border-2 border-stone-200 focus:border-rose-300 focus:outline-none transition-colors bg-white"
             />
           </div>
 
@@ -203,7 +206,7 @@ const BookAppointment = () => {
               name="timeSlot"
               value={formData.timeSlot}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border-2 border-stone-200 focus:border-rose-300 focus:outline-none transition-colors"
+              className="w-full px-4 py-3 rounded-xl border-2 border-stone-200 focus:border-rose-300 focus:outline-none transition-colors bg-white"
             >
               <option value="">Select a time slot</option>
               {generateTimeSlots().map((slot) => (
@@ -218,7 +221,7 @@ const BookAppointment = () => {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full bg-gradient-to-r from-rose-400 to-amber-300 text-stone-900 py-3 rounded-xl font-semibold text-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="w-full bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 py-3 rounded-xl font-semibold text-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             {loading ? 'Booking...' : 'Book Appointment'}
           </button>

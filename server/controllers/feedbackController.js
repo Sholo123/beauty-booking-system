@@ -69,11 +69,24 @@ export const updateFeedback = async (req, res) => {
 
 //Get feedbacks for a service
 export const getFeedbacksByServiceId = async (req, res) => {
-    const { serviceId } = req.params;
+    const { serviceId } = req.params; 
 
     try {
         const feedbacks = await sql`
-            SELECT * FROM feedback
+            SELECT 
+            feedback.feedback_id,
+            feedback.appointment_id,
+            feedback.user_id,
+            feedback.service_id,
+            feedback.rating,
+            feedback.comment,
+            feedback.created_at,
+            services.name AS service_name,
+            services.description AS service_description,
+            services.price AS service_price,
+            services.duration_minutes AS service_duration
+            FROM feedback
+            JOIN services ON feedback.service_id = services.service_id
             WHERE service_id = ${serviceId}
         `;
 
@@ -95,7 +108,20 @@ export const getFeedbacksByUserId = async (req, res) => {
 
     try {
         const feedbacks = await sql`
-            SELECT * FROM feedback
+        SELECT
+            feedback.feedback_id,
+            feedback.appointment_id,
+            feedback.user_id,
+            feedback.service_id,
+            feedback.rating,
+            feedback.comment,
+            feedback.created_at,
+            services.name AS service_name,
+            services.description AS service_description,
+            services.price AS service_price,
+            services.duration_minutes AS service_duration
+            FROM feedback
+            JOIN services ON feedback.service_id = services.service_id
             WHERE user_id = ${userId}
         `;
 
@@ -115,7 +141,29 @@ export const getFeedbacksByUserId = async (req, res) => {
 export const getAllFeedbacks = async (req, res) => {
     try {
         const feedbacks = await sql`
-            SELECT * FROM feedback
+            SELECT 
+            feedback.feedback_id,
+            feedback.appointment_id,
+            feedback.user_id,
+            feedback.service_id,
+            feedback.rating,
+            feedback.comment,
+            feedback.created_at,
+            services.name AS service_name,
+            services.description AS service_description,
+            services.price AS service_price,
+            services.duration_minutes AS service_duration,
+            users.first_name AS user_first_name,
+            users.last_name AS user_last_name,
+            users.email AS user_email,
+            users.phone AS user_phone,
+            appointments.appointment_date,
+            appointments.time_slot,
+            appointments.status AS appointment_status
+            FROM feedback
+            JOIN services ON feedback.service_id = services.service_id
+            JOIN users ON feedback.user_id = users.user_id
+            JOIN appointments ON feedback.appointment_id = appointments.appointment_id
         `;
         res.status(200).json(feedbacks);
     } catch (error) {

@@ -157,3 +157,24 @@ export const removeUser = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+//Check if user is admin
+export const isAdmin = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await sql`
+      SELECT * FROM users WHERE user_id = ${userId} AND role = 'admin'
+    `;
+
+    const isAdmin = user.length > 0;
+
+    console.log("Admin check for user:", userId, "isAdmin:", isAdmin);
+
+    // ✅ Send response back to frontend
+    res.status(200).json({ isAdmin });
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
