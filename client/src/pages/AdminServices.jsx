@@ -13,8 +13,8 @@ const AdminServices = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [editingService, setEditingService] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // ✅ Fetch all services
+  
+  //   Fetch all servicesd
   const fetchServices = async () => {
     try {
       const res = await axios.get("http://localhost:4000/api/services/get-services");
@@ -30,7 +30,7 @@ const AdminServices = () => {
     fetchServices();
   }, []);
 
-  // ✅ Handle input change
+  //   Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -40,7 +40,7 @@ const AdminServices = () => {
     setNewService({ ...newService, [name]: value });
   };
 
-  // ✅ Create new service
+  //   Create new service
   const handleCreateService = async () => {
     if (!newService.name || !newService.description || !newService.price || !newService.duration_minutes) {
       alert("Please fill in all fields");
@@ -72,7 +72,7 @@ const AdminServices = () => {
     }
   };
 
-  // ✅ Update existing service
+  //   Update existing service
   const handleUpdateService = async (serviceId) => {
     try {
       await axios.put(`http://localhost:4000/api/services/update-service/${serviceId}`, editingService);
@@ -85,7 +85,33 @@ const AdminServices = () => {
     }
   };
 
-  // ✅ Delete service
+  //   Upload image for existing service
+ const handleUploadImage = async (serviceId, file) => {
+  if (!file) {
+    alert("Please select an image first.");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    await axios.post(
+      `http://localhost:4000/api/services/add-service-image/${serviceId}`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+
+    alert("Image uploaded!");
+    fetchServices();
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    alert("Failed to upload image");
+  }
+};
+
+
+  //   Delete service
   const handleDeleteService = async (serviceId) => {
     if (!window.confirm("Are you sure you want to delete this service?")) return;
     try {
@@ -98,7 +124,7 @@ const AdminServices = () => {
     }
   };
 
-  // ✅ Delete service image
+  //   Delete service image
   const handleDeleteImage = async (imageId) => {
     try {
       await axios.delete(`http://localhost:4000/api/services/delete-service-image/${imageId}`);
@@ -251,6 +277,33 @@ const AdminServices = () => {
                         placeholder="Duration (minutes)"
                         className="w-full border-2 border-stone-200 focus:border-rose-400 rounded-xl p-3 mb-4 focus:outline-none transition-colors text-stone-800"
                       />
+                      {/*}
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-stone-700 mb-1">
+                          Upload New Image
+                        </label>
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setEditSelectedImage(e.target.files[0])}
+                          className="w-full text-stone-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl
+                                    file:border-0 file:text-sm file:font-semibold file:bg-rose-50
+                                    file:text-rose-600 hover:file:bg-rose-100 transition duration-300"
+                        />
+
+                        {editSelectedImage && (
+                          <button
+                            onClick={() => handleUploadImage(service.service_id)}
+                            className="mt-2 bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 
+                                      px-4 py-2 rounded-xl hover:from-stone-400 hover:to-rose-400
+                                      transition shadow-md hover:shadow-lg"
+                          >
+                            Upload Image
+                          </button>
+                        )}
+                      </div>*/}
+
                       <div className="flex gap-3">
                         <button
                           onClick={() => handleUpdateService(service.service_id)}
@@ -269,24 +322,43 @@ const AdminServices = () => {
                   ) : (
                     <>
                       {/* View Mode */}
-                      {service.images?.map((img) => (
-                        <div key={img.image_id} className="relative mb-3">
-                          <img
-                            src={`http://localhost:4000${img.image_url}`}
-                            alt={service.name}
-                            className="w-full h-48 object-cover rounded-xl shadow-inner"
-                          />
-                          <button
-                            onClick={() => handleDeleteImage(img.image_id)}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 text-xs hover:bg-red-600 transition"
-                            title="Delete Image"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
+                     {(!service.images || service.images.length === 0) ? (
+                          <div className="relative mb-3 flex flex-col items-center justify-center bg-stone-100 border border-stone-300 rounded-xl h-48">
+                            <p className="text-stone-500 mb-2">No Image</p>
+
+                            {/* Upload button when NO image */}
+                            <label className="cursor-pointer bg-rose-200 text-stone-800 px-3 py-2 rounded-lg hover:bg-rose-300 transition">
+                              Upload Image
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files[0];
+                                  handleUploadImage(service.service_id, file);
+                                }}
+                              />
+                            </label>
+                          </div>
+                        ) : (
+                          service.images.map((img) => (
+                            <div key={img.image_id} className="relative mb-3">
+                              <img
+                                src={`http://localhost:4000${img.image_url}`}
+                                alt={service.name}
+                                className="w-full h-48 object-cover rounded-xl shadow-inner"
+                              />
+
+                              <button
+                                onClick={() => handleDeleteImage(img.image_id)}
+                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 text-xs hover:bg-red-600 transition"
+                              >
+                                🗑
+                              </button>
+                            </div>
+                          ))
+                        )}
+
                       <h3 className="font-bold text-xl text-rose-600 mb-1">{service.name}</h3>
                       <p className="text-stone-600 mb-2">{service.description}</p>
                       <p className="text-stone-800 font-semibold mb-1">Price: R{service.price}</p>

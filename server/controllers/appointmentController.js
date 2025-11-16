@@ -169,9 +169,14 @@ export const getAppointmentsByUserId = async (req, res) => {
         appointments.time_slot,
         appointments.status,
         services.service_id,
-        services.name AS service_name
+        services.name AS service_name,
+        services.description AS service_description,
+        services.price AS service_price,
+        services.duration_minutes AS service_duration,
+        service_images.image_url AS service_image_url
       FROM appointments
       JOIN services ON appointments.service_id = services.service_id
+      LEFT JOIN service_images ON services.service_id = service_images.service_id
       WHERE appointments.user_id = ${userId}
       ORDER BY appointments.appointment_date DESC
     `;
@@ -205,10 +210,13 @@ export const getAllAppointments = async (req, res) => {
                 services.name AS service_name,
                 services.description AS service_description,
                 services.price AS service_price,
-                services.duration_minutes AS service_duration
+                services.duration_minutes AS service_duration,
+                service_images.image_id AS service_image_id,
+                service_images.image_url AS service_image_url
             FROM appointments
             JOIN users ON appointments.user_id = users.user_id
             JOIN services ON appointments.service_id = services.service_id
+            LEFT JOIN service_images ON services.service_id = service_images.service_id
         `;
 
         if (appointments.length === 0) {
@@ -229,7 +237,7 @@ export const deleteAppointment = async (req, res) => {
     try {
         const deletedAppointment = await sql`
             DELETE FROM appointments
-            WHERE appointment_id = ${appointmentId} AND status != 'confirmed'
+            WHERE appointment_id = ${appointmentId}
             RETURNING *
         `;
 

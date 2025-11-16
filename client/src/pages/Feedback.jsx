@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaStar } from 'react-icons/fa'; // Install react-icons if not already: npm install react-icons
+import { FaStar } from 'react-icons/fa'; 
 
 const Feedback = () => {
   const userId = localStorage.getItem('userId');
@@ -113,7 +113,7 @@ const Feedback = () => {
     if (!window.confirm('Are you sure you want to delete this feedback?')) return;
     try {
       const res = await fetch(`http://localhost:4000/api/feedback/delete-feedback/${feedbackId}`, { method: 'DELETE' });
-      const data = await res.json();
+    //  const data = await res.json();
       if (res.ok) {
         setFeedbacks(prev => prev.filter(f => f.feedback_id !== feedbackId));
       }
@@ -137,51 +137,67 @@ const Feedback = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-rose-50 to-stone-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-8">
-        <h2 className="text-4xl font-bold text-stone-800 mb-2 text-center" style={{ fontFamily: 'serif' }}>Provide Feedback</h2>
+        <h2 className="text-4xl font-bold text-stone-800 mb-2 text-center" style={{ fontFamily: 'serif' }}>Provide Feedback For Your Appointment</h2>
 
-        {/* Feedback Form */}
-        <div className="space-y-4">
-          <select
-            value={selectedAppointment}
-            onChange={(e) => setSelectedAppointment(e.target.value)}
-            className="w-full border border-stone-300 rounded-xl p-2"
-          >
-            <option value="">Select Appointment</option>
-            {appointments.map((a) => (
-              <option key={a.appointment_id} value={a.appointment_id}>
-                {a.service_name} - {new Date(a.appointment_date).toLocaleDateString()} ({a.time_slot})
-              </option>
-            ))}
-          </select>
+      {/* Feedback Form */}
+      <div className="space-y-4">
 
-          {/* Star Rating */}
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-stone-700">Rating:</span>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <FaStar
-                key={star}
-                size={24}
-                className="cursor-pointer transition-colors"
-                color={star <= rating ? '#F43F5E' : '#D1D5DB'} // pink filled, gray empty
-                onClick={() => setRating(star)}
-              />
-            ))}
+            {/* Display all booked service images in a horizontal gallery */}
+            <div className="flex flex-wrap gap-3 justify-start">
+              {appointments.map((a) => (
+                <div key={a.appointment_id} className="flex flex-col items-center">
+                  <img
+                    src={a.service_image_url ? `http://localhost:4000${a.service_image_url}` : '/fallback.jpg'}
+                    alt={a.service_name}
+                    className="w-40 h-40 object-cover rounded-xl border"
+                  />
+                  <span className="text-sm text-stone-600 mt-1 text-center">{a.service_name}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Dropdown comes below the images */}
+            <select
+              value={selectedAppointment}
+              onChange={(e) => setSelectedAppointment(e.target.value)}
+              className="w-full border border-stone-300 rounded-xl p-2"
+            >
+              <option value="">Select Appointment</option>
+              {appointments.map((a) => (
+                <option key={a.appointment_id} value={a.appointment_id}>
+                  {a.service_name} - {new Date(a.appointment_date).toLocaleDateString()} ({a.time_slot})
+                </option>
+              ))}
+            </select>
+
+            {/* Star Rating */}
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-stone-700">Rating:</span>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <FaStar
+                  key={star}
+                  size={24}
+                  className="cursor-pointer transition-colors"
+                  color={star <= rating ? '#F43F5E' : '#D1D5DB'}
+                  onClick={() => setRating(star)}
+                />
+              ))}
+            </div>
+
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Write your feedback here..."
+              className="w-full border border-stone-300 rounded-xl p-2"
+            />
+
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 px-6 py-3 rounded-xl font-medium hover:from-stone-400 hover:to-rose-400 transition-all duration-300 shadow-md hover:shadow-lg"
+            >
+              Submit Feedback
+            </button>
           </div>
-
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Write your feedback here..."
-            className="w-full border border-stone-300 rounded-xl p-2"
-          />
-
-          <button
-            onClick={handleSubmit}
-            className="bg-rose-200 text-stone-800 px-6 py-2 rounded-xl font-semibold hover:bg-rose-300 transition"
-          >
-            Submit Feedback
-          </button>
-        </div>
 
         {/* Existing Feedbacks */}
         <h3 className="text-xl font-semibold text-stone-800 mt-10 mb-4">My Feedbacks</h3>
@@ -226,14 +242,14 @@ const Feedback = () => {
                         setComment(f.comment);
                         setEditFeedbackId(f.feedback_id);
                     }}
-                    className="bg-rose-200 text-stone-800 px-6 py-2 rounded-xl font-semibold hover:bg-rose-300 transition"
+                    className="flex-1 bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 px-6 py-3 rounded-xl font-medium hover:from-stone-400 hover:to-rose-400 transition-all duration-300 shadow-md hover:shadow-lg"
                     >
                     Edit
                     </button>
 
                     <button
                     onClick={() => handleDelete(f.feedback_id)}
-                    className="bg-rose-200 text-stone-800 px-6 py-2 rounded-xl font-semibold hover:bg-rose-300 transition"
+                   className="flex-1 bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 px-6 py-3 rounded-xl font-medium hover:from-stone-400 hover:to-rose-400 transition-all duration-300 shadow-md hover:shadow-lg"
                     >
                     Delete
                     </button>

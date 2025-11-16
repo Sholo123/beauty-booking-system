@@ -119,9 +119,11 @@ export const getFeedbacksByUserId = async (req, res) => {
             services.name AS service_name,
             services.description AS service_description,
             services.price AS service_price,
-            services.duration_minutes AS service_duration
+            services.duration_minutes AS service_duration,
+            service_images.image_url AS service_image_url
             FROM feedback
             JOIN services ON feedback.service_id = services.service_id
+            LEFT JOIN service_images ON services.service_id = service_images.service_id
             WHERE user_id = ${userId}
         `;
 
@@ -153,6 +155,7 @@ export const getAllFeedbacks = async (req, res) => {
             services.description AS service_description,
             services.price AS service_price,
             services.duration_minutes AS service_duration,
+            service_images.image_url AS service_image_url,
             users.first_name AS user_first_name,
             users.last_name AS user_last_name,
             users.email AS user_email,
@@ -164,6 +167,7 @@ export const getAllFeedbacks = async (req, res) => {
             JOIN services ON feedback.service_id = services.service_id
             JOIN users ON feedback.user_id = users.user_id
             JOIN appointments ON feedback.appointment_id = appointments.appointment_id
+            LEFT JOIN service_images ON services.service_id = service_images.service_id
         `;
         res.status(200).json(feedbacks);
     } catch (error) {

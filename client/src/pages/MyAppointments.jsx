@@ -263,7 +263,7 @@ const MyAppointments = () => {
                       </button>
                       <button
                         onClick={() => setEditMode(null)}
-                        className="px-6 py-3 rounded-xl font-medium border-2 border-stone-300 text-stone-700 hover:bg-stone-50 transition-all duration-300"
+                        className="flex-1 bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 px-6 py-3 rounded-xl font-medium hover:from-stone-400 hover:to-rose-400 transition-all duration-300 shadow-md hover:shadow-lg"
                       >
                         Cancel
                       </button>
@@ -275,10 +275,25 @@ const MyAppointments = () => {
                       {/* Appointment Details */}
                       <div className="flex-1">
                         <div className="flex items-start gap-4">
-                          <div className="bg-gradient-to-br from-stone-100 to-rose-100 p-3 rounded-xl border border-stone-200">
-                            <span className="text-2xl">💅</span>
-                          </div>
-                          
+                        {/* Find the service linked to this appointment */}
+                        {(() => {
+                          const service = services.find(
+                            (s) => s.service_id === appt.service_id
+                          );
+
+                          return (
+                            <img
+                              src={
+                                service?.images?.length > 0
+                                  ? `http://localhost:4000${service.images[0].image_url}`
+                                  : "/fallback.jpg"
+                              }
+                              alt={service?.name}
+                              className="w-40 h-40 object-cover rounded-xl border"
+                            />
+                          );
+                        })()}
+
                           <div className="flex-1">
                             <h3 className="text-xl font-bold text-stone-800 mb-3">
                               {appt.service_name}
@@ -303,8 +318,15 @@ const MyAppointments = () => {
                               </div>
                               
                               <div className="inline-block mt-2">
-                                <span className="px-3 py-1 bg-stone-100 text-stone-700 rounded-full text-sm font-medium border border-stone-300">
+                                <span className={`px-3 py-1 text-sm rounded-full font-medium ${
+                            appt.status === "confirmed"
+                              ? "bg-green-100 text-green-700 border border-green-300"
+                              : appt.status === "rejected"
+                              ? "bg-rose-100 text-rose-700 border border-rose-300"
+                              : "bg-yellow-100 text-yellow-700 border border-yellow-300"
+                          }`}>
                                   {appt.status || 'Pending'}
+                             
                                 </span>
                               </div>
                             </div>
@@ -312,7 +334,7 @@ const MyAppointments = () => {
                         </div>
                       </div>
 
-                      {/* Action Buttons */}
+                    {/* Action Buttons */}
                       <div className="flex flex-col sm:flex-row gap-3 lg:flex-col xl:flex-row">
                         <button
                           onClick={() => {
@@ -321,23 +343,33 @@ const MyAppointments = () => {
                               appointment_date: appt.appointment_date,
                               slot_time: appt.time_slot,
                               serviceId:
-                                services.find(
-                                  (s) => s.name === appt.service_name
-                                )?.service_id || "",
+                                services.find((s) => s.name === appt.service_name)?.service_id || "",
                             });
                           }}
-                          className="px-6 py-3 bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 rounded-xl font-medium hover:from-stone-400 hover:to-rose-400 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                          disabled={appt.status === "confirmed"} // Disable if confirmed
+                          className={`px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
+                            appt.status === "confirmed"
+                              ? "bg-stone-200 text-stone-500 cursor-not-allowed"
+                              : "bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 hover:from-stone-400 hover:to-rose-400 hover:shadow-lg"
+                          }`}
                         >
                           Reschedule
                         </button>
-                        
+
                         <button
                           onClick={() => handleCancel(appt.appointment_id)}
-                           className="flex-1 bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 px-6 py-3 rounded-xl font-medium hover:from-stone-400 hover:to-rose-400 transition-all duration-300 shadow-md hover:shadow-lg"
+                          disabled={appt.status === "confirmed"} // Disable if confirmed
+                          className={`px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
+                            appt.status === "confirmed"
+                              ? "bg-stone-200 text-stone-500 cursor-not-allowed"
+                              : "bg-gradient-to-r from-stone-300 to-rose-300 text-stone-800 hover:from-stone-400 hover:to-rose-400 hover:shadow-lg"
+                          }`}
                         >
-                          Cancel Appointment
+                          
+                          Cancel
                         </button>
                       </div>
+
                     </div>
                   </div>
                 )}

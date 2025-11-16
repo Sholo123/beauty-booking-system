@@ -174,26 +174,41 @@ import {sql} from '../config/db.js';
 };
 
 
-
   //Remove a service
   export const deleteService = async (req, res) => {
-    const { serviceId } = req.params;
+  const { serviceId } = req.params;
 
-    try {
-      const deletedService = await sql`
-        DELETE FROM services
-        WHERE service_id = ${serviceId}
-        RETURNING *
-      `;
+  try {
+    // Check if service is being used in any appointment
+    const relatedAppointments = await sql`
+      SELECT appointment_id 
+      FROM appointments 
+      WHERE service_id = ${serviceId}
+    `;
 
-      if (deletedService.length === 0) {
-        return res.status(404).json({ message: "Service not found" });
-      }
-
-      console.log("Deleted service:", deletedService[0]);
-      res.status(200).json(deletedService[0]);
-    } catch (error) {
-      console.error("Error deleting service:", error);
-      res.status(500).json({ message: "Internal server error" });
+    if (relatedAppointments.length > 0) {
+      return res.status(400).json({
+        message: "Cannot delete this service because it has existing appointments."
+      });
     }
-  };
+
+    // Safe to delete
+    const deletedService = await sql`
+      DELETE FROM services
+      WHERE service_id = ${serviceId}
+      RETURNING *
+    `;
+
+    if (deletedService.length === 0) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    console.log("Deleted service:", deletedService[0]);
+    res.status(200).json(deletedService[0]);
+
+  } catch (error) {
+    console.error("Error deleting service:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+

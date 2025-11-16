@@ -118,8 +118,14 @@ const AdminFeedbacks = () => {
               >
                 <div className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className="bg-gradient-to-br from-stone-100 to-rose-100 p-3 rounded-xl border border-stone-200">
-                      <span className="text-2xl">💅</span>
+                    <div className="bg-stone-100 p-2 rounded-xl border border-stone-200">
+                    <img
+                      src={f.service_image_url ? `http://localhost:4000${f.service_image_url}` : "/fallback.jpg"}
+                      alt={f.service_name}
+                      className="w-full h-80 object-cover rounded-xl mb-3"
+                    />
+
+
                     </div>
                     
                     <div className="flex-1">

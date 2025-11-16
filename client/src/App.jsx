@@ -5,18 +5,22 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import BookAppointment from "./pages/BookAppointment";
 import MyAppointments from "./pages/MyAppointments";
-import Dashboard from "./pages/Dashboard";
 import Feedback from "./pages/Feedback";
 import AdminAppointments from "./pages/AdminAppointments";
 import AdminServices from "./pages/AdminServices";
 import AdminFeedbacks from "./pages/AdminFeedbacks";
 import RoleCheckWrapper from "./pages/RoleCheckWrapper";
+import Footer from "./footer/Footer";
 import { Navigate } from "react-router-dom";
 
 function App() {
   return (
     <Router>
-      <Routes>
+
+      <div className=" flex flex-col"> 
+        <div className="flex-grow">
+          {/* Main content will be rendered here based on the route */}
+          <Routes>
         <Route path="/" element={<Home />} />        {/* Landing page */}
         <Route path="/login" element={<Login />} /> {/* Login page */}
         <Route path="/register" element={<Register />} /> {/* Register page */}
@@ -35,7 +39,11 @@ function App() {
            
 
         </Route>
-      </Routes>
+        </Routes>
+        </div>
+        <Footer />
+      </div>
+      
     </Router>
   );
 }
