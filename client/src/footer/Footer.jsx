@@ -33,13 +33,11 @@ const Footer = () => {
               </div>
             </div>
             <div>
-              <h6 className="font-semibold mb-6 text-rose-200 text-lg">Quick Links</h6>
+              <h6 className="font-semibold mb-6 text-rose-200 text-lg">Our Links</h6>
               <div className="space-y-3">
                 <a href="#services" className="block text-rose-200/70 hover:text-rose-300 transition">Our Services</a>
-                <button className="block text-rose-200/70 hover:text-rose-300 transition text-left">Price List</button>
-                <a href="#testimonials" className="block text-rose-200/70 hover:text-rose-300 transition">Testimonials</a>
+                <a href="#reviews" className="block text-rose-200/70 hover:text-rose-300 transition">Reviews</a>
                 <button className="block text-rose-200/70 hover:text-rose-300 transition text-left">Booking Policy</button>
-                <a href="/login" className="block text-rose-200/70 hover:text-rose-300 transition">Login</a>
               </div>
             </div>
             <div>

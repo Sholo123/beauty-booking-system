@@ -13,6 +13,12 @@ export const createFeedback = async (req, res) => {
                 AND status = 'confirmed'
           `;
 
+          if(parseInt(existingAppointment[0].count >= 1)){
+                return res.status(400).json({
+            message: "You already made a review for this service, please edit the review or delete it",
+             });
+            }
+
           if (existingAppointment.length === 0) {
               return res.status(404).json({ message: "Feedback for a service can only be created if the appointment exists and is confirmed." });
           }
@@ -176,7 +182,7 @@ export const getAllFeedbacks = async (req, res) => {
     }
 };
 
-//Admin can delete a feedback
+//Client can delete a feedback
 export const deleteFeedback = async (req, res) => {
     const { feedbackId } = req.params;
 

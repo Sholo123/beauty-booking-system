@@ -103,7 +103,7 @@ const HomePage = () => {
             {/* Logo */}
             <div className="flex items-center space-x-3 cursor-pointer">
               <div className="w-14 h-14 bg-gradient-to-br from-stone-300 via-rose-300 to-stone-400 rounded-full flex items-center justify-center text-stone-900 font-bold text-2xl shadow-md transition-transform duration-300 hover:scale-110">
-                <Sparkles className="w-8 h-8" />
+                <img src={LogoImage} alt="Logo" className="w-12 h-12 rounded-full object-cover" />
               </div>
               <div>
                 <h1 className="text-2xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-rose-200 via-stone-200 to-rose-200">
@@ -115,7 +115,7 @@ const HomePage = () => {
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
-              {['Home', 'Services', 'Reviews', 'Contact'].map((link, i) => (
+              {['Home', 'Services', 'Reviews', 'Contact', 'Policies'].map((link, i) => (
                 <a 
                   key={i} 
                   href={`#${link.toLowerCase()}`} 
@@ -168,7 +168,9 @@ const HomePage = () => {
               >
                 Login
               </a>
-              <button className="w-full bg-gradient-to-r from-stone-300 to-rose-300 text-stone-900 px-6 py-3 rounded-full font-semibold hover:shadow-lg transition">
+              <button className="w-full bg-gradient-to-r from-stone-300 to-rose-300 text-stone-900 px-6 py-3 rounded-full font-semibold hover:shadow-lg transition"
+              onClick={goToLogin}
+              >
                 Book Now
               </button>
             </div>
@@ -209,7 +211,11 @@ const HomePage = () => {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-64 h-64 bg-gradient-to-br from-stone-300 via-rose-300 to-stone-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                    <Heart className="w-32 h-32 text-stone-900" />
+                    <img 
+                      src={LogoImage} 
+                      alt="Balmyflare Logo" 
+                      className="w-56 h-56 object-cover rounded-full"
+                    />
                   </div>
                   <p className="text-3xl font-serif text-stone-800 italic">Beauty & Elegance</p>
                 </div>
@@ -220,47 +226,59 @@ const HomePage = () => {
       </section>
 
       {/* Services Section - Full Price List */}
-      <section id="services" className="py-20 px-4 bg-white/60 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h3 className="text-4xl md:text-5xl font-serif text-stone-900 mb-4">Our Services & Pricing</h3>
-            <div className="w-32 h-1.5 bg-gradient-to-r from-stone-300 via-rose-300 to-stone-300 mx-auto rounded-full mb-4"></div>
-            <p className="text-stone-600 text-lg max-w-2xl mx-auto">
-              Indulge in our premium beauty services, crafted to perfection by an expert professional
+      <section id="services" className="py-24 px-4 bg-white/60 backdrop-blur-sm relative overflow-hidden">
+        {/* Decorative background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-rose-300 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-stone-300 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-20">
+            <h3 className="text-5xl md:text-6xl font-serif text-stone-900 mb-6">Our Services & Pricing</h3>
+            <div className="w-40 h-1.5 bg-gradient-to-r from-stone-300 via-rose-300 to-stone-300 mx-auto rounded-full mb-6"></div>
+            <p className="text-stone-600 text-xl max-w-3xl mx-auto leading-relaxed">
+              Indulge in our premium beauty services, crafted to perfection by expert professionals
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
             {serviceCategories.map((category, index) => {
               const IconComponent = category.icon;
               return (
                 <div 
                   key={index}
-                  className="bg-white rounded-3xl p-8 shadow-md hover:shadow-xl transition-all duration-300 border-2 border-stone-200 hover:border-rose-300"
+                  className="group bg-white rounded-3xl p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border-2 border-stone-200 hover:border-rose-300 hover:-translate-y-2 flex flex-col"
                 >
-                  <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-stone-100">
-                    <div className="p-3 bg-gradient-to-br from-stone-100 to-rose-100 rounded-2xl">
-                      <IconComponent className="w-8 h-8 text-rose-500" />
+                  {/* Header */}
+                  <div className="flex items-center gap-5 mb-8 pb-6 border-b-2 border-stone-100">
+                    <div className="p-4 bg-gradient-to-br from-stone-100 to-rose-100 rounded-2xl shadow-md group-hover:shadow-lg transition-shadow duration-300">
+                      <IconComponent className="w-10 h-10 text-rose-500" />
                     </div>
-                    <h4 className="text-2xl font-serif font-bold text-stone-900">{category.title}</h4>
+                    <h4 className="text-3xl font-serif font-bold text-stone-900 italic">{category.title}</h4>
                   </div>
                   
-                  <div className="space-y-4">
+                  {/* Services List */}
+                  <div className="space-y-3 mb-8 flex-grow">
                     {category.services.map((service, i) => (
                       <div 
                         key={i} 
-                        className="flex justify-between items-start gap-4 p-3 rounded-xl hover:bg-stone-50 transition-colors"
+                        className=" font-serif text-stone-800 italic flex justify-between items-start gap-6 p-4 rounded-xl hover:bg-gradient-to-r hover:from-stone-50 hover:to-rose-50 transition-all duration-300 group/item"
                       >
-                        <span className="text-stone-700 flex-1">{service.name}</span>
-                        <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-stone-600 to-rose-500 whitespace-nowrap">
+                        <span className="text-stone-700 flex-1 text-base leading-relaxed group-hover/item:text-stone-900 transition-colors">
+                          {service.name}
+                        </span>
+                        <span className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-stone-600 to-rose-500 whitespace-nowrap group-hover/item:from-stone-700 group-hover/item:to-rose-600">
                           {service.price}
                         </span>
                       </div>
                     ))}
                   </div>
                   
-                  <button className="w-full mt-6 bg-gradient-to-r from-stone-300 to-rose-300 text-stone-900 py-3 rounded-xl font-semibold hover:from-stone-400 hover:to-rose-400 hover:shadow-md transition-all duration-300"
-                   onClick={goToLogin}
+                  {/* Book Button */}
+                  <button 
+                    className=" font-serif text-stone-800 italic w-full bg-gradient-to-r from-stone-300 to-rose-300 text-stone-900 py-4 rounded-2xl font-bold text-lg hover:from-stone-400 hover:to-rose-400 hover:shadow-xl transition-all duration-300 transform hover:scale-105 mt-auto"
+                    onClick={goToLogin}
                   >
                     Book {category.title}
                   </button>
