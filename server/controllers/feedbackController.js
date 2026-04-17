@@ -182,25 +182,40 @@ export const getAllFeedbacks = async (req, res) => {
     }
 };
 
-//Client can delete a feedback
+//Client can delete their own feedback; admins can delete any.
 export const deleteFeedback = async (req, res) => {
     const { feedbackId } = req.params;
 
+    if (!req.user || typeof req.user.userId !== "number") {
+        return res.status(401).json({ message: "Authentication required" });
+    }
+
     try {
+        const existing = await sql`
+            SELECT user_id FROM feedback WHERE feedback_id = ${feedbackId}
+        `;
+        if (existing.length === 0) {
+            return res.status(404).json({ message: "Feedback not found" });
+        }
+
+        if (existing[0].user_id !== req.user.userId) {
+            const caller = await sql`
+                SELECT role FROM users WHERE user_id = ${req.user.userId}
+            `;
+            if (caller.length === 0 || caller[0].role !== "admin") {
+                return res.status(403).json({ message: "Forbidden" });
+            }
+        }
+
         const deletedFeedback = await sql`
             DELETE FROM feedback
             WHERE feedback_id = ${feedbackId}
             RETURNING *
         `;
 
-        if (deletedFeedback.length === 0) {
-            return res.status(404).json({ message: "Feedback not found" });
-        }
-
-        console.log("Deleted feedback:", deletedFeedback[0]);
         res.status(200).json(deletedFeedback[0]);
     } catch (error) {
-        console.error("Error deleting feedback:", error);
+        console.error("Error deleting feedback");
         res.status(500).json({ message: "Internal server error" });
     }
 };

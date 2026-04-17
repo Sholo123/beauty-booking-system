@@ -6,44 +6,91 @@ import userRouter from "./routes/userRoutes.js";
 import serviceRouter from "./routes/serviceRoutes.js";
 import appointmentRouter from "./routes/appointmentRoutes.js";
 import feedbackRouter from "./routes/feedbackRoutes.js";
-import cors from 'cors';
-import morgan from 'morgan';
-
-
-
+import cors from "cors";
+import morgan from "morgan";
 
 dotenv.config();
+
+// --- Fail fast on missing required env vars ---
+const REQUIRED_ENV = ["DATABASE_URL", "JWT_SECRET"];
+for (const name of REQUIRED_ENV) {
+  if (!process.env[name]) {
+    console.error(`FATAL: environment variable ${name} is required`);
+    process.exit(1);
+  }
+}
+
+// Reject obviously weak JWT secrets.
+if (
+  process.env.JWT_SECRET.length < 32 ||
+  /^(your[_-]?super[_-]?secret|change[_-]?me|secret|password)/i.test(process.env.JWT_SECRET)
+) {
+  console.error(
+    "FATAL: JWT_SECRET is too weak. Use a long, random value (>=32 chars). Generate one with:\n" +
+      "  node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\""
+  );
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(express.json());
-app.use(cors());
-app.use(morgan('dev'));
+// --- CORS: explicit allowlist, no wildcard ---
+const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:3000")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // Allow same-origin / curl / server-to-server requests (no Origin header).
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error(`Origin ${origin} not allowed by CORS`));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(express.json({ limit: "1mb" }));
+app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
 
-//API endpoints
-app.use('/api/users', userRouter);
-app.use('/api/services', serviceRouter);
-app.use('/api/appointments', appointmentRouter);
-app.use('/api/feedback', feedbackRouter);
+// Simple healthcheck.
+app.get("/", (req, res) => {
+  res.send("Beauty Booking System Backend is running!");
+});
 
+// API endpoints
+app.use("/api/users", userRouter);
+app.use("/api/services", serviceRouter);
+app.use("/api/appointments", appointmentRouter);
+app.use("/api/feedback", feedbackRouter);
 
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: `Route ${req.method} ${req.originalUrl} not found` });
+});
+
+// Central error handler (e.g. multer file-size / file-type errors).
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err && err.message ? err.message : err);
+  const status = err && err.status ? err.status : 400;
+  res.status(status).json({ message: err && err.message ? err.message : "Request failed" });
+});
 
 // ------------------------
 // DATABASE CONNECTION
 // ------------------------
+const sslRejectUnauthorized =
+  (process.env.PG_SSL_REJECT_UNAUTHORIZED || "true").toLowerCase() !== "false";
 const sql = postgres(process.env.DATABASE_URL, {
-  ssl: { rejectUnauthorized: false } // required for Neon
-});
-app.get("/", (req, res) => {
-  res.send("Hello from the backend");
+  ssl: { rejectUnauthorized: sslRejectUnauthorized },
 });
 
-app.use((req, res) => {
-  res
-    .status(404)
-    .json({ message: `Route ${req.method} ${req.originalUrl} not found` });
-});
 // ------------------------
 // INIT DB FUNCTION
 // ------------------------
@@ -95,7 +142,7 @@ async function initDB() {
        user_id INT NOT NULL,
        service_id INT NOT NULL,
        appointment_date DATE NOT NULL,
-       time_slot VARCHAR(20) NOT NULL, -- store the full time slot as a string
+       time_slot VARCHAR(20) NOT NULL,
        status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending','confirmed','cancelled','rejected')),
        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
        FOREIGN KEY (user_id) REFERENCES users(user_id),
@@ -129,10 +176,6 @@ async function initDB() {
 // INITIALIZE DB THEN START SERVER
 // ------------------------
 initDB().then(() => {
-  app.get("/", (req, res) => {
-    res.send("Beauty Booking System Backend is running!");
-  });
-
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

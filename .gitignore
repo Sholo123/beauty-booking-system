@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+build/
+dist/
+
+# Environment files (never commit secrets!)
+.env
+.env.*
+!.env.example
+
+# User-uploaded content
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Coverage
+coverage/
