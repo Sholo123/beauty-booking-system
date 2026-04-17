@@ -1,39 +1,80 @@
 import {sql} from '../config/db.js';
 
+// Validate that an ID looks like a positive integer (path params arrive as strings).
+const isValidId = (id) => {
+    if (id === undefined || id === null || id === '') return false;
+    const n = Number(id);
+    return Number.isInteger(n) && n > 0;
+};
+
 //Create a feedback for a service by a user
 export const createFeedback = async (req, res) => {
       const { appointmentId, userId, serviceId } = req.params;
-      const { rating, comment } = req.body;
+      const { rating, comment } = req.body ?? {};
+
+      // Validate path parameters up-front so we never pass garbage into SQL.
+      if (!isValidId(appointmentId)) {
+          return res.status(400).json({ message: "Invalid appointmentId: must be a positive integer." });
+      }
+      if (!isValidId(userId)) {
+          return res.status(400).json({ message: "Invalid userId: must be a positive integer." });
+      }
+      if (!isValidId(serviceId)) {
+          return res.status(400).json({ message: "Invalid serviceId: must be a positive integer." });
+      }
+
+      // Validate body
+      if (rating === undefined || rating === null || rating === '') {
+          return res.status(400).json({ message: "Rating is required." });
+      }
+      const ratingNum = Number(rating);
+      if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+          return res.status(400).json({ message: "Rating must be an integer between 1 and 5." });
+      }
+      if (comment !== undefined && comment !== null && typeof comment !== 'string') {
+          return res.status(400).json({ message: "Comment must be a string." });
+      }
+      if (typeof comment === 'string' && comment.length > 1000) {
+          return res.status(400).json({ message: "Comment must not exceed 1000 characters." });
+      }
 
       try {
-
+          // 1. Verify the appointment exists, belongs to this user/service, and is confirmed.
           const existingAppointment = await sql`
-                SELECT * FROM appointments
-                WHERE appointment_id = ${appointmentId} AND user_id = ${userId} AND service_id = ${serviceId} 
+                SELECT appointment_id FROM appointments
+                WHERE appointment_id = ${appointmentId} AND user_id = ${userId} AND service_id = ${serviceId}
                 AND status = 'confirmed'
           `;
 
-          if(parseInt(existingAppointment[0].count >= 1)){
-                return res.status(400).json({
-            message: "You already made a review for this service, please edit the review or delete it",
-             });
-            }
-
           if (existingAppointment.length === 0) {
-              return res.status(404).json({ message: "Feedback for a service can only be created if the appointment exists and is confirmed." });
+              return res.status(404).json({
+                  message: "No confirmed appointment found for the given appointmentId, userId, and serviceId. Feedback can only be created for a confirmed appointment."
+              });
+          }
+
+          // 2. Reject duplicate reviews for the same appointment.
+          const existingFeedback = await sql`
+                SELECT feedback_id FROM feedback
+                WHERE appointment_id = ${appointmentId} AND user_id = ${userId} AND service_id = ${serviceId}
+          `;
+
+          if (existingFeedback.length > 0) {
+              return res.status(409).json({
+                  message: "A review already exists for this appointment. Please edit or delete the existing review instead."
+              });
           }
 
           const newFeedback = await sql`
               INSERT INTO feedback (appointment_id, user_id, service_id, rating, comment)
-              VALUES (${appointmentId}, ${userId}, ${serviceId}, ${rating}, ${comment})
+              VALUES (${appointmentId}, ${userId}, ${serviceId}, ${ratingNum}, ${comment ?? null})
               RETURNING *
           `;
 
           console.log("Created new feedback:", newFeedback[0]);
-          res.status(201).json(newFeedback[0]);
+          return res.status(201).json(newFeedback[0]);
       } catch (error) {
           console.error("Error creating feedback:", error);
-          res.status(500).json({ message: "Internal server error" });
+          return res.status(500).json({ message: "Internal server error" });
       }
 };
 
@@ -41,17 +82,41 @@ export const createFeedback = async (req, res) => {
 //Update a feedback
 export const updateFeedback = async (req, res) => {
       const { feedbackId, userId, serviceId } = req.params;
-      const { rating, comment } = req.body;
+      const { rating, comment } = req.body ?? {};
 
-      const updates = {}; 
+      if (!isValidId(feedbackId)) {
+          return res.status(400).json({ message: "Invalid feedbackId: must be a positive integer." });
+      }
+      if (!isValidId(userId)) {
+          return res.status(400).json({ message: "Invalid userId: must be a positive integer." });
+      }
+      if (!isValidId(serviceId)) {
+          return res.status(400).json({ message: "Invalid serviceId: must be a positive integer." });
+      }
 
-  // Only add fields that are explicitly provided (not undefined).
-        if (rating !== undefined) updates.rating = rating;
-        if (comment !== undefined) updates.comment = comment;
-        
-            if (Object.keys(updates).length === 0) {
-        return res.status(400).json({ message: "At least one field is required to update" });
-    }
+      const updates = {};
+
+      // Only add fields that are explicitly provided (not undefined), and validate them.
+      if (rating !== undefined) {
+          const ratingNum = Number(rating);
+          if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+              return res.status(400).json({ message: "Rating must be an integer between 1 and 5." });
+          }
+          updates.rating = ratingNum;
+      }
+      if (comment !== undefined) {
+          if (comment !== null && typeof comment !== 'string') {
+              return res.status(400).json({ message: "Comment must be a string." });
+          }
+          if (typeof comment === 'string' && comment.length > 1000) {
+              return res.status(400).json({ message: "Comment must not exceed 1000 characters." });
+          }
+          updates.comment = comment;
+      }
+
+      if (Object.keys(updates).length === 0) {
+          return res.status(400).json({ message: "At least one field (rating or comment) is required to update." });
+      }
 
       try {
           const updatedFeedback = await sql`
@@ -62,20 +127,24 @@ export const updateFeedback = async (req, res) => {
           `;
 
           if (updatedFeedback.length === 0) {
-              return res.status(404).json({ message: "Feedback not found" });
+              return res.status(404).json({ message: "Feedback not found for the given feedbackId, userId, and serviceId." });
           }
 
           console.log("Updated feedback:", updatedFeedback[0]);
-          res.status(200).json(updatedFeedback[0]);
+          return res.status(200).json(updatedFeedback[0]);
       } catch (error) {
           console.error("Error updating feedback:", error);
-          res.status(500).json({ message: "Internal server error" });
+          return res.status(500).json({ message: "Internal server error" });
       }
 };
 
 //Get feedbacks for a service
 export const getFeedbacksByServiceId = async (req, res) => {
-    const { serviceId } = req.params; 
+    const { serviceId } = req.params;
+
+    if (!isValidId(serviceId)) {
+        return res.status(400).json({ message: "Invalid serviceId: must be a positive integer." });
+    }
 
     try {
         const feedbacks = await sql`
@@ -93,24 +162,24 @@ export const getFeedbacksByServiceId = async (req, res) => {
             services.duration_minutes AS service_duration
             FROM feedback
             JOIN services ON feedback.service_id = services.service_id
-            WHERE service_id = ${serviceId}
+            WHERE feedback.service_id = ${serviceId}
         `;
 
-        if (feedbacks.length === 0) {
-            return res.status(404).json({ message: "No feedback found for this service" });
-        }
-
         console.log("Retrieved feedbacks:", feedbacks);
-        res.status(200).json(feedbacks);
+        return res.status(200).json(feedbacks);
     } catch (error) {
         console.error("Error retrieving feedbacks:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
 
 //Get feedbacks by user ID
 export const getFeedbacksByUserId = async (req, res) => {
     const { userId } = req.params;
+
+    if (!isValidId(userId)) {
+        return res.status(400).json({ message: "Invalid userId: must be a positive integer." });
+    }
 
     try {
         const feedbacks = await sql`
@@ -130,18 +199,14 @@ export const getFeedbacksByUserId = async (req, res) => {
             FROM feedback
             JOIN services ON feedback.service_id = services.service_id
             LEFT JOIN service_images ON services.service_id = service_images.service_id
-            WHERE user_id = ${userId}
+            WHERE feedback.user_id = ${userId}
         `;
 
-        if (feedbacks.length === 0) {
-            return res.status(404).json({ message: "No feedback found for this user" });
-        }
-
         console.log("Retrieved feedbacks:", feedbacks);
-        res.status(200).json(feedbacks);
+        return res.status(200).json(feedbacks);
     } catch (error) {
         console.error("Error retrieving feedbacks:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
 
@@ -175,16 +240,20 @@ export const getAllFeedbacks = async (req, res) => {
             JOIN appointments ON feedback.appointment_id = appointments.appointment_id
             LEFT JOIN service_images ON services.service_id = service_images.service_id
         `;
-        res.status(200).json(feedbacks);
+        return res.status(200).json(feedbacks);
     } catch (error) {
         console.error("Error retrieving feedbacks:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
 
 //Client can delete a feedback
 export const deleteFeedback = async (req, res) => {
     const { feedbackId } = req.params;
+
+    if (!isValidId(feedbackId)) {
+        return res.status(400).json({ message: "Invalid feedbackId: must be a positive integer." });
+    }
 
     try {
         const deletedFeedback = await sql`
@@ -194,13 +263,13 @@ export const deleteFeedback = async (req, res) => {
         `;
 
         if (deletedFeedback.length === 0) {
-            return res.status(404).json({ message: "Feedback not found" });
+            return res.status(404).json({ message: "Feedback not found for the given feedbackId." });
         }
 
         console.log("Deleted feedback:", deletedFeedback[0]);
-        res.status(200).json(deletedFeedback[0]);
+        return res.status(200).json(deletedFeedback[0]);
     } catch (error) {
         console.error("Error deleting feedback:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
